@@ -12,13 +12,18 @@ import matplotlib.pyplot as plt
 
 device = "cuda"   #specify platform ['cuda', 'npu']
 
+# Specify baseline power consumption (in Watts)
+baseline_power = 7.0   # 7W for RTX3050; 67W for A100
+print(f'Baseline Power Consumption: {baseline_power:.2f}W')
+
+
 if device=="npu":
     try:
         import torch_npu 
     except:
         pass
 
-# Define the ResNet-101 architecture
+# Define the ResNet-18 architecture
 class ResNet18(nn.Module):
     def __init__(self):
         super(ResNet18, self).__init__()
@@ -54,10 +59,6 @@ def measure_power():
         return 0 # add logic for cpu
     else:
         return 0  
-
-# Specify baseline power consumption (in Watts)
-baseline_power = 7.0 
-print(f'Baseline Power Consumption: {baseline_power:.2f}W')
 
 # Store power measurements for each epoch
 def log_power_measurement(start_time, epoch, measurements):
