@@ -10,14 +10,20 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-device = "cuda"   #specify platform ['cuda', 'npu']
+device_type = "npu"   #specify platform ['cuda', 'npu']
+device_number="7"
+
+
+device=device_type+":"+device_number
+
+
 
 # Specify baseline power consumption (in Watts)
-baseline_power = 7.0   # 7W for RTX3050; 67W for A100
+baseline_power = 66.4   # 7W for NVIDIA RTX3050;54W for NVIDIA A100; 67W for NPU 910A
 print(f'Baseline Power Consumption: {baseline_power:.2f}W')
 
 
-if device=="npu":
+if device_type=="npu":
     try:
         import torch_npu 
     except:
@@ -39,7 +45,7 @@ transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
 ])
-train_dataset = datasets.MNIST('../data', train=True, download=True, transform=transform)
+train_dataset = datasets.MNIST('data', train=True, download=True, transform=transform)
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
 
 # Initialize model, loss, and optimizer
@@ -49,11 +55,12 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Function to measure power consumption
 def measure_power():
-    if device=="cuda":
+    if device_type=="cuda":
         result = subprocess.run(['nvidia-smi', '--query-gpu=power.draw', '--format=csv,noheader,nounits'], stdout=subprocess.PIPE)
-        return float(result.stdout.decode('utf-8').strip())
-    elif device=="npu":
-        result = subprocess.run(['npu-smi','info','-t', 'power','-i', '0', '-c', '0'], stdout=subprocess.PIPE)
+        power_draws = result.stdout.decode('utf-8').strip().split('\n')
+        return float(power_draws[int(device_number)])
+    elif device_type=="npu":
+        result = subprocess.run(['npu-smi','info','-t', 'power','-i', device_number, '-c', '0'], stdout=subprocess.PIPE)
         return float(result.stdout.decode('utf-8').strip().split(":")[1])
     elif device=="cpu":
         return 0 # add logic for cpu
@@ -88,7 +95,7 @@ for epoch in range(num_epochs):
     print(f'Epoch {epoch+1} completed in {epoch_time:.2f}s')
 
 # Save power measurements to CSV
-csv_file = 'power_measurements.csv'
+csv_file = 'power_measurements_'+device_type+'.csv'
 with open(csv_file, 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['Epoch', 'Elapsed Time (s)', 'Power Consumption (W)'])
