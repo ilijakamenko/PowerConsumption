@@ -1,9 +1,12 @@
+#---------------------------------------------------------------------------------------------
 import pandas as pd
 import matplotlib.pyplot as plt
+#---------------------------------------------------------------------------------------------
+
 
 num_epochs = 5
 # Load data from CSV
-df = pd.read_csv('power_measurements.csv')
+df = pd.read_csv('transformer_power_measurements_cuda.csv')
 
 # Calculate cumulative elapsed time
 df['Cumulative Elapsed Time (s)'] = 0
@@ -34,5 +37,5 @@ plt.ylabel('Power Consumption (W)')
 plt.title('GPU Power Consumption Over Time')
 
 plt.grid(True)
-plt.savefig('power_consumption_over_time.png')  # Save plot as PNG
+plt.savefig('transformer_power_measurements_cuda.png')  # Save plot as PNG
 plt.show()

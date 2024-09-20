@@ -1,33 +1,23 @@
+#---------------------------------------------------------------------------------------------
 import torch
-
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms, models
+from torch.utils.data import DataLoader
 import time
 import subprocess
 import csv
-import pandas as pd
-import matplotlib.pyplot as plt
+import os
+try:
+    import torch_npu 
+except:
+    pass
+#---------------------------------------------------------------------------------------------
 
-
-device_type = "npu"   #specify platform ['cuda', 'npu']
-device_number="7"
-
+device_type = "cuda"   #specify platform ['cuda', 'npu', 'cpu']
+device_number="0"
 
 device=device_type+":"+device_number
-
-
-
-# Specify baseline power consumption (in Watts)
-baseline_power = 66.4   # 7W for NVIDIA RTX3050;54W for NVIDIA A100; 67W for NPU 910A
-print(f'Baseline Power Consumption: {baseline_power:.2f}W')
-
-
-if device_type=="npu":
-    try:
-        import torch_npu 
-    except:
-        pass
 
 # Define the ResNet-18 architecture
 class ResNet18(nn.Module):
@@ -40,13 +30,13 @@ class ResNet18(nn.Module):
 
 # Prepare dataset
 transform = transforms.Compose([
-    transforms.Resize(224),  # Resize images to 224x224 to fit ResNet input size
+    transforms.Resize(224),  # Resize images to 224x2234 to fit ResNet input size
     transforms.Grayscale(num_output_channels=3),  # Convert grayscale to RGB
     transforms.ToTensor(),
     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
 ])
 train_dataset = datasets.MNIST('data', train=True, download=True, transform=transform)
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True) #for a100 add num_workers>1
 
 # Initialize model, loss, and optimizer
 model = ResNet18().to(device)
@@ -74,10 +64,14 @@ def log_power_measurement(start_time, epoch, measurements):
     power = round(measure_power() - baseline_power, 2)
     measurements.append((epoch, round(elapsed_time, 2), power))
 
+# Specify baseline power consumption (in Watts)
+baseline_power = round(measure_power(), 2)
+print(f'Baseline Power Consumption: {baseline_power:.2f}W')
+
 # Start training
 num_epochs = 5
 epoch_measurements = {i: [] for i in range(num_epochs)}
-
+print('Start training...')
 for epoch in range(num_epochs):
     epoch_start_time = time.time()
     
@@ -93,9 +87,12 @@ for epoch in range(num_epochs):
     
     epoch_time = time.time() - epoch_start_time
     print(f'Epoch {epoch+1} completed in {epoch_time:.2f}s')
+    
+# save model
+torch.save(model, "models/"+os.path.basename(__file__).split('.')[0]+'_'+device_type+'.pt')
 
 # Save power measurements to CSV
-csv_file = 'power_measurements_'+device_type+'.csv'
+csv_file = os.path.basename(__file__).split(".")[0]+'_power_measurements_'+device_type+'.csv'
 with open(csv_file, 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['Epoch', 'Elapsed Time (s)', 'Power Consumption (W)'])
