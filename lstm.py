@@ -163,6 +163,10 @@ def log_power_measurement(start_time, epoch, measurements):
 baseline_power = round(measure_power(), 2)
 print(f'Baseline Power Consumption: {baseline_power:.2f}W')
 
+# Count total parameters
+total_params = sum(p.numel() for p in model.parameters())
+print(f"Total parameters in LSTM: {total_params}")
+
 # Start training
 num_epochs = 5
 epoch_measurements = {i: [] for i in range(num_epochs)}
