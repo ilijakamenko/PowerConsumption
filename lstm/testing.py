@@ -1,0 +1,97 @@
+# ---------------------------------------------------------------------------------------------
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from torch.nn.utils.rnn import pad_sequence
+from datasets import load_dataset
+from transformers import AutoTokenizer
+from device_info import DeviceInfo
+from results import TestResult
+
+try:
+    import torch_npu
+except:
+    pass
+# ---------------------------------------------------------------------------------------------
+
+
+def text_pipeline(tokenizer, text: str):
+    return tokenizer.encode(text, truncation=True, max_length=512)
+
+
+def get_collate_fn(tokenizer):
+    def collate_fn(batch):
+        label_list, text_list = [], []
+        for item in batch:
+            _label = item["label"]
+            _text = item["text"]
+            label_list.append(torch.tensor(_label))
+            processed_text = torch.tensor(
+                text_pipeline(tokenizer, _text), dtype=torch.int64
+            )
+            text_list.append(processed_text)
+        return (
+            torch.tensor(label_list),
+            pad_sequence(text_list, batch_first=True),
+        )
+
+    return collate_fn
+
+
+def evaluate_model(model, test_loader, device: str):
+    total_correct = 0
+    total_loss = 0
+    total_samples = 0
+    loss_fn = nn.CrossEntropyLoss()
+
+    with torch.no_grad():
+        for _, (labels, texts) in enumerate(test_loader):
+            texts, labels = texts.to(device), labels.to(device)
+            outputs = model(texts)
+            loss = loss_fn(outputs, labels)
+
+            _, predicted = torch.max(outputs, 1)
+            correct = predicted.eq(labels).sum().item()
+
+            total_correct += correct
+            total_loss += loss.item() * texts.size(0)
+            total_samples += texts.size(0)
+
+    avg_loss = total_loss / total_samples
+    accuracy = 100.0 * total_correct / total_samples
+
+    return avg_loss, accuracy
+
+
+def test(model: nn.Module, device_info: DeviceInfo) -> TestResult:
+    model.eval()
+
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    dataset = load_dataset("imdb")
+    test_dataset = dataset["test"]
+
+    collate_fn = get_collate_fn(tokenizer)
+
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=64,
+        shuffle=True,
+        collate_fn=collate_fn,
+    )  # for a100 add num_workers>1
+
+    avg_loss, accuracy = evaluate_model(model, test_loader, device_info.device)
+    return TestResult(accuracy=accuracy, avg_loss=avg_loss)
+
+
+if __name__ == "__main__":
+    device_info = DeviceInfo(device_type="cuda", device_number="0")
+
+    # Load the model
+    model_file = f"models/lstm_{device_info.device_type}.pt"
+
+    print(f"Loading model from {model_file}")
+
+    # Load the trained model
+    model = torch.load(model_file, map_location=device_info.device, weights_only=False)
+
+    test(model, device_info)
