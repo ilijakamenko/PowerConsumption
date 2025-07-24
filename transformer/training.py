@@ -96,7 +96,4 @@ def train(device_info: DeviceInfo) -> TrainingResults:
                 )
             )
 
-        epoch_time = time.time() - epoch_start_time
-        print(f"Epoch {epoch + 1} completed in {epoch_time:.2f}s")
-
     return TrainingResults(model=model, measurements=measurements)
