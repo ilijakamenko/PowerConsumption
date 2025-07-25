@@ -8,6 +8,7 @@ from results import PowerMeasurement, TrainingResults
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import time
+from tqdm import tqdm
 
 try:
     import torch_npu
@@ -43,7 +44,7 @@ def train(device_info: DeviceInfo) -> TrainingResults:
 
     num_epochs = 5
     measurements = []
-    for epoch in range(num_epochs):
+    for epoch in tqdm(range(num_epochs), desc="Training"):
         epoch_start_time = time.time()
 
         for _, (data, target) in enumerate(train_loader):
