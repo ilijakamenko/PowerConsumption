@@ -23,9 +23,17 @@ def save_model(model, model_name):
 
 
 class Benchmark(ABC):
-    def __init__(self, model_name: str, device_info: DeviceInfo):
+    def __init__(
+        self,
+        model_name: str,
+        device_info: DeviceInfo,
+        num_workers: int = 1,
+        batch_size: int = 64,
+    ):
         self.model_name = model_name
         self.device_info = device_info
+        self.num_workers = num_workers
+        self.batch_size = batch_size
 
     @abstractmethod
     def train(self) -> TrainingResults:
@@ -43,11 +51,14 @@ class Benchmark(ABC):
         runs = []
         for run in tqdm(range(run_count), desc="Running benchmark"):
             cleanup_cuda()
-            # TODO: warmup train
+            # Warmup train, discard results
+            tqdm.write("Warming up GPU...")
+            self.train()
+            torch.cuda.synchronize()
+            tqdm.write("Warmed up")
+
             train_results = self.train()
             cleanup_cuda()
-            # TODO: warmup test
-            test_results = self.test(train_results.model)
             total_params = sum(p.numel() for p in train_results.model.parameters())
             for m in train_results.measurements:
                 runs.append(
@@ -56,8 +67,8 @@ class Benchmark(ABC):
                         "epoch": m.epoch,
                         "elapsed_time": m.elapsed_time,
                         "power_consumption": m.power_consumption,
-                        "accuracy": test_results.accuracy,
-                        "avg_loss": test_results.avg_loss,
+                        "accuracy": m.avg_accuracy,
+                        "avg_loss": m.loss,
                         "total_params": total_params,
                     }
                 )

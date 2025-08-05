@@ -39,7 +39,9 @@ def evaluate_model(model, test_loader, device: str):
     return avg_loss, accuracy
 
 
-def test(model: nn.Module, device_info: DeviceInfo) -> TestResult:
+def test(
+    model: nn.Module, device_info: DeviceInfo, num_workers: int, batch_size: int
+) -> TestResult:
     model.eval()
 
     test_transform = transforms.Compose(
@@ -55,7 +57,10 @@ def test(model: nn.Module, device_info: DeviceInfo) -> TestResult:
         "data", train=False, download=True, transform=test_transform
     )
     test_loader = DataLoader(
-        test_dataset, batch_size=64, shuffle=False
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
     )  # for a100 add num_workers>1
 
     avg_loss, accuracy = evaluate_model(model, test_loader, device_info.device)

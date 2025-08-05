@@ -63,7 +63,9 @@ def evaluate_model(model, test_loader, device: str):
     return avg_loss, accuracy
 
 
-def test(model: nn.Module, device_info: DeviceInfo) -> TestResult:
+def test(
+    model: nn.Module, device_info: DeviceInfo, num_workers: int, batch_size: int
+) -> TestResult:
     model.eval()
 
     dataset = load_dataset("imdb")
@@ -72,9 +74,10 @@ def test(model: nn.Module, device_info: DeviceInfo) -> TestResult:
     collate_fn = get_collate_fn(tokenizer)
     test_loader = DataLoader(
         test_dataset,
-        batch_size=64,
+        batch_size=batch_size,
         shuffle=True,
         collate_fn=collate_fn,
+        num_workers=num_workers,
     )  # for a100 add num_workers>1
     avg_loss, accuracy = evaluate_model(model, test_loader, device_info.device)
     return TestResult(accuracy=accuracy, avg_loss=avg_loss)

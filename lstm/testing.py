@@ -63,7 +63,9 @@ def evaluate_model(model, test_loader, device: str):
     return avg_loss, accuracy
 
 
-def test(model: nn.Module, device_info: DeviceInfo) -> TestResult:
+def test(
+    model: nn.Module, device_info: DeviceInfo, num_workers: int, batch_size: int
+) -> TestResult:
     model.eval()
 
     tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
@@ -74,9 +76,10 @@ def test(model: nn.Module, device_info: DeviceInfo) -> TestResult:
 
     test_loader = DataLoader(
         test_dataset,
-        batch_size=64,
+        batch_size=batch_size,
         shuffle=True,
         collate_fn=collate_fn,
+        num_workers=num_workers,
     )  # for a100 add num_workers>1
 
     avg_loss, accuracy = evaluate_model(model, test_loader, device_info.device)

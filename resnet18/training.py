@@ -1,4 +1,5 @@
 # ---------------------------------------------------------------------------------------------
+import torch
 import torch.nn as nn
 import torch.optim as optim
 from device_info import DeviceInfo
@@ -16,7 +17,9 @@ except:
     pass
 
 
-def train(device_info: DeviceInfo) -> TrainingResults:
+def train(
+    device_info: DeviceInfo, batch_size: int, num_workers: int
+) -> TrainingResults:
     transform = transforms.Compose(
         [
             transforms.Resize(
@@ -32,8 +35,9 @@ def train(device_info: DeviceInfo) -> TrainingResults:
     )
     train_loader = DataLoader(
         train_dataset,
-        batch_size=64,
+        batch_size=batch_size,
         shuffle=True,
+        num_workers=num_workers,
     )  # for a100 add num_workers>1
 
     model = ResNet18().to(device_info.device)
@@ -47,13 +51,16 @@ def train(device_info: DeviceInfo) -> TrainingResults:
     for epoch in tqdm(range(num_epochs), desc="Training"):
         epoch_start_time = time.time()
 
-        for _, (data, target) in enumerate(train_loader):
-            data, target = data.to(device_info.device), target.to(device_info.device)
+        for _, (data, label) in enumerate(train_loader):
+            data, label = data.to(device_info.device), label.to(device_info.device)
             optimizer.zero_grad()
             output = model(data)
-            loss = criterion(output, target)
+            loss = criterion(output, label)
             loss.backward()
             optimizer.step()
+
+            _, predicted = torch.max(output, 1)
+            avg_accuracy = (predicted == label).sum().item() / batch_size
 
             measurements.append(
                 PowerMeasurement(
@@ -62,6 +69,8 @@ def train(device_info: DeviceInfo) -> TrainingResults:
                     power_consumption=round(
                         measure_power(device_info) - baseline_power, 2
                     ),
+                    loss=loss.item(),
+                    avg_accuracy=avg_accuracy,
                 )
             )
 

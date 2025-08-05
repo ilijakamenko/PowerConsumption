@@ -42,7 +42,9 @@ def get_collate_fn(tokenizer):
     return collate
 
 
-def train(device_info: DeviceInfo) -> TrainingResults:
+def train(
+    device_info: DeviceInfo, num_workers: int, batch_size: int
+) -> TrainingResults:
     tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
     collate_fn = get_collate_fn(tokenizer)
@@ -50,9 +52,10 @@ def train(device_info: DeviceInfo) -> TrainingResults:
     train_data = IMDBDataset()
     train_loader = DataLoader(
         train_data,
-        batch_size=64,
+        batch_size=batch_size,
         shuffle=True,
         collate_fn=collate_fn,
+        num_workers=num_workers,
     )  # for a100 add num_workers>1
 
     # Initialize model, loss, and optimizer
@@ -88,6 +91,9 @@ def train(device_info: DeviceInfo) -> TrainingResults:
             loss.backward()
             optimizer.step()
 
+            _, predicted = torch.max(output, 1)
+            avg_accuracy = (predicted == label).sum().item() / batch_size
+
             measurements.append(
                 PowerMeasurement(
                     epoch=epoch,
@@ -95,6 +101,8 @@ def train(device_info: DeviceInfo) -> TrainingResults:
                     power_consumption=round(
                         measure_power(device_info) - baseline_power, 2
                     ),
+                    loss=loss.item(),
+                    avg_accuracy=avg_accuracy,
                 )
             )
 

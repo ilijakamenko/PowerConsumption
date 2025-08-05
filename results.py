@@ -8,6 +8,8 @@ class PowerMeasurement:
     epoch: int
     elapsed_time: float
     power_consumption: float
+    loss: float
+    avg_accuracy: float
 
 
 @dataclass
