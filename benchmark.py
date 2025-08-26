@@ -70,6 +70,7 @@ class Benchmark(ABC):
                         "accuracy": m.avg_accuracy,
                         "avg_loss": m.loss,
                         "total_params": total_params,
+                        "batch_size": self.batch_size,
                     }
                 )
 
