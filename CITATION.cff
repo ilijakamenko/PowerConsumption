@@ -1,0 +1,74 @@
+cff-version: 1.2.0
+title: PowerConsumption
+message: "If you use this repository in your research, please cite the associated publication."
+type: software
+
+authors:
+  - family-names: Kamenko
+    given-names: Ilija
+  - family-names: Ivošević
+    given-names: Jovan
+
+repository-code: https://github.com/ilijakamenko/PowerConsumption
+
+preferred-citation:
+  type: article
+  title: "Critical Analysis of Energy Consumption in Neuro-Computational Systems"
+
+  authors:
+    - family-names: Kipelkin
+      given-names: Ivan
+    - family-names: Kamenko
+      given-names: Ilija
+    - family-names: Ivošević
+      given-names: Jovan
+    - family-names: Fedorova
+      given-names: Alina
+    - family-names: Zharkov
+      given-names: Grigory
+    - family-names: Maricic
+      given-names: Jovana
+    - family-names: Bratic
+      given-names: Stojanka
+    - family-names: Pilipovic
+      given-names: Nebojša
+    - family-names: Samardzic
+      given-names: Nataša
+    - family-names: Dautovic
+      given-names: Staniša
+    - family-names: Medojević
+      given-names: Milovan
+    - family-names: Bajac
+      given-names: Branimir
+    - family-names: Vallverdú
+      given-names: Jordi
+    - family-names: Žunić
+      given-names: Dragiša
+    - family-names: Restuccia
+      given-names: Francesco
+    - family-names: Bucaria
+      given-names: Vincenzo
+    - family-names: Longo
+      given-names: Francesco
+    - family-names: Merlino
+      given-names: Giovanni
+    - family-names: Bruneo
+      given-names: Dario
+    - family-names: Distefano
+      given-names: Salvatore
+    - family-names: Toshchev
+      given-names: Aleksandr
+    - family-names: Mikhaylov
+      given-names: Alexey
+    - family-names: Erokhin
+      given-names: Victor
+    - family-names: Talanov
+      given-names: Max
+
+  journal: IEEE Access
+  year: 2026
+  volume: 14
+  start: 60535
+  end: 60556
+  doi: 10.1109/ACCESS.2026.3683791
+  url: https://ieeexplore.ieee.org/document/11481193/

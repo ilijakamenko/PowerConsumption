@@ -142,13 +142,22 @@ python train.py --model transformer
 
 # Citation
 
-If you use this code in your research, please cite the following paper:
+If you use this repository in your research, please cite the associated publication:
 
+```bibtex
+@article{Kipelkin2026,
+  author = {Ivan Kipelkin and Ilija Kamenko and Jovan Ivošević and Alina Fedorova and Grigory Zharkov and Jovana Maricic and Stojanka Bratic and Nebojsa Pilipovic and Natasa Samardzic and Stanisa Dautovic and Milovan Medojević and Branimir Bajac and Jordi Vallverdú and Dragiša Žunić and Francesco Restuccia and Vincenzo Bucaria and Francesco Longo and Giovanni Merlino and Dario Bruneo and Salvatore Distefano and Aleksandr Toshchev and Alexey Mikhaylov and Victor Erokhin and Max Talanov},
+  title = {Critical Analysis of Energy Consumption in Neuro-Computational Systems},
+  journal = {IEEE Access},
+  volume = {14},
+  pages = {60535--60556},
+  year = {2026},
+  doi = {10.1109/ACCESS.2026.3683791},
+  url = {https://ieeexplore.ieee.org/document/11481193/}
+}
 ```
-Kipelkin, I., Kamenko, I., et al.
-Critical Analysis of Neuro-computational System Energy Consumption.
-IEEE Access.
-```
+
+
 
 ---
 
